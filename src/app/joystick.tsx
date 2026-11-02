@@ -9,14 +9,15 @@ const UDP_PORT = 4210;
 const DEST_IP = '192.168.4.1';
 
 export default function Joystick() {
-  const socket = useRef(dgram.createSocket('udp4'));
-  const offset = useSharedValue({ x: 0, y: 0 });
+  const socket = useRef(dgram.createSocket({ type: 'udp4' }));  const offsetX = useSharedValue(0);
+  const offsetY = useSharedValue(0);
   const [debugData, setDebugData] = useState({ left: 0, right: 0, forward: 0 });
 
   useEffect(() => {
     try {
-      socket.current.bind(0);
-      console.log('Socket bound successfully');
+      socket.current.bind(0, () => {
+        console.log('Socket bound successfully');
+      });
     } catch (e) {
       console.warn('Socket already bound or error:', e);
     }
@@ -43,7 +44,8 @@ export default function Joystick() {
     .onUpdate((e) => {
       const clampedX = clamp(e.translationX, -70, 70);
       const clampedY = clamp(e.translationY, -70, 70);
-      offset.value = { x: clampedX, y: clampedY };
+      offsetX.value = clampedX;
+      offsetY.value = clampedY;
 
       const left = clampedX < -33 ? 1 : 0;
       const right = clampedX > 33 ? 1 : 0;
@@ -52,21 +54,22 @@ export default function Joystick() {
       runOnJS(sendUdp)(left, right, forward);
     })
     .onEnd(() => {
-      offset.value = { x: withSpring(0), y: withSpring(0) };
+      offsetX.value = withSpring(0);
+      offsetY.value = withSpring(0);
       runOnJS(sendUdp)(0, 0, 0);
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: offset.value.x }, { translateY: offset.value.y }],
+    transform: [{ translateX: offsetX.value }, { translateY: offsetY.value }],
   }));
 
   return (
     <View style={styles.container}>
-      <View style={styles.joystickArea}>
-        <GestureDetector gesture={gesture}>
+      <GestureDetector gesture={gesture}>
+        <View style={styles.joystickArea}>
           <Animated.View style={[styles.knob, animatedStyle]} />
-        </GestureDetector>
-      </View>
+        </View>
+      </GestureDetector>
       <View style={styles.debugBox}>
         <Text style={styles.debugText}>Forward: {debugData.forward}</Text>
         <Text style={styles.debugText}>Left: {debugData.left}</Text>

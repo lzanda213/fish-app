@@ -1,7 +1,7 @@
 import { StyleSheet, Text } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import Joystick from './joystick';
+import Joystick from './joystick'; // Adjust path (e.g., './components/Joystick') if placed in a subdirectory
 
 export default function App() {
   return (
@@ -18,6 +18,7 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
